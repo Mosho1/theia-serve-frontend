@@ -11,9 +11,16 @@ export const TheiaServeExtCommand = {
     label: 'Run current file'
 };
 
+let iframe: HTMLIFrameElement | null = null;
 const runModule = async (path: string, port = 4000) => {
+    if (iframe) document.body.removeChild(iframe);
     const url = `${location.protocol}//${location.hostname}:${port}/${path.replace(/^\//, '')}`;
-    await eval(`import("${url}?${Date.now()}")`);
+    iframe = document.createElement('iframe');
+    document.body.appendChild(iframe);
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = url;
+    iframe.contentWindow.document.body.appendChild(script);
 };
 
 @injectable()
