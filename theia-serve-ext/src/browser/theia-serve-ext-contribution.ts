@@ -1,15 +1,20 @@
 import { injectable, inject, } from "inversify";
-import { CommandContribution, CommandRegistry, MenuContribution, MenuModelRegistry, MessageService } from "@theia/core/lib/common";
+import { MAIN_MENU_BAR, CommandContribution, CommandRegistry, MenuContribution, MenuModelRegistry, MessageService } from "@theia/core/lib/common";
 import { WorkspaceService } from "@theia/workspace/lib/browser";
-import { NavigationLocationService } from "@theia/editor/lib/browser/navigation/navigation-location-service";
-import { CommonMenus } from "@theia/core/lib/browser";
-import { EditorManager, EditorWidget } from '@theia/editor/lib/browser';
+import { EditorManager, EditorKeybindingContexts } from '@theia/editor/lib/browser';
+
 import URI from '@theia/core/lib/common/uri';
+import { KeybindingRegistry, KeybindingContribution } from "@theia/core/lib/browser";
+
 
 export const TheiaServeExtCommand = {
     id: 'TheiaServeExt.command',
     label: 'Run current file'
 };
+
+export namespace RunMenus {
+    export const RUN = [...MAIN_MENU_BAR, '4_run'];
+}
 
 let iframe: HTMLIFrameElement | null = null;
 const runModule = async (path: string, port = 4000) => {
@@ -20,16 +25,17 @@ const runModule = async (path: string, port = 4000) => {
     const script = document.createElement('script');
     script.type = 'module';
     script.src = url;
-    iframe.contentWindow.document.body.appendChild(script);
+    if (iframe.contentWindow)
+        iframe.contentWindow.document.body.appendChild(script);
 };
 
 @injectable()
-export class TheiaServeExtCommandContribution implements CommandContribution {
-
-    @inject(EditorManager) protected readonly editors: EditorManager;
-    @inject(WorkspaceService) private readonly workspaceService: WorkspaceService;
-    @inject(NavigationLocationService) private readonly navigationLocationService: NavigationLocationService;
-    @inject(MessageService) private readonly messageService: MessageService;
+export class TheiaServeExtCommandContribution implements CommandContribution, KeybindingContribution, MenuContribution {
+    constructor(
+        @inject(EditorManager) protected readonly editors: EditorManager,
+        @inject(WorkspaceService) private readonly workspaceService: WorkspaceService,
+        @inject(MessageService) private readonly messageService: MessageService,
+    ) { }
 
     get currentRelativePath() {
         const { currentEditor } = this.editors;
@@ -63,15 +69,21 @@ export class TheiaServeExtCommandContribution implements CommandContribution {
             }
         });
     }
-}
 
-@injectable()
-export class TheiaServeExtMenuContribution implements MenuContribution {
+    registerKeybindings(keybindings: KeybindingRegistry) {
+        keybindings.registerKeybinding({
+            command: TheiaServeExtCommand.id,
+            keybinding: 'ctrl+f6',
+            context: EditorKeybindingContexts.editorTextFocus
+        });
+    }
 
     registerMenus(menus: MenuModelRegistry): void {
-        menus.registerMenuAction(CommonMenus.EDIT_FIND, {
+        menus.registerSubmenu(RunMenus.RUN, 'Run');
+        menus.registerMenuAction(RunMenus.RUN, {
             commandId: TheiaServeExtCommand.id,
-            label: TheiaServeExtCommand.label
+            label: TheiaServeExtCommand.label,
         });
     }
 }
+
