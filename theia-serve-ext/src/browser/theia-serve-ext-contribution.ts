@@ -24,6 +24,7 @@ const runModule = async (path: string, port = 4000) => {
     document.body.appendChild(iframe);
     const script = document.createElement('script');
     script.type = 'module';
+    script.crossOrigin = 'true';
     script.src = url;
     if (iframe.contentWindow)
         iframe.contentWindow.document.body.appendChild(script);
