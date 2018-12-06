@@ -12,9 +12,9 @@ export const TheiaServeExtCommand = {
     label: 'Run current file'
 };
 
-export namespace RunMenus {
-    export const RUN = [...MAIN_MENU_BAR, '4_run'];
-}
+export const RunMenus = {
+    RUN: [...MAIN_MENU_BAR, '4_run']
+};
 
 let iframe: HTMLIFrameElement | null = null;
 const runModule = async (path: string, port = 4000) => {
@@ -58,7 +58,7 @@ export class TheiaServeExtCommandContribution implements CommandContribution, Ke
                 if (path) {
                     const rawPath = (path as any).raw;
                     try {
-                        await runModule(rawPath);
+                        await runModule(`workspace/${rawPath}`);
                     } catch (e) {
                         this.messageService.error('could not run file!');
                         console.error(e);
