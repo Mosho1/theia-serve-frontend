@@ -19,7 +19,7 @@ export const RunMenus = {
 let iframe: HTMLIFrameElement | null = null;
 const runModule = async (path: string, port = 4000) => {
     if (iframe) document.body.removeChild(iframe);
-    const url = `${location.protocol}//${location.hostname}:${port}/${path.replace(/^\//, '')}`;
+    const url = path.replace(/^\//, '')};
     iframe = document.createElement('iframe');
     document.body.appendChild(iframe);
     const script = document.createElement('script');
